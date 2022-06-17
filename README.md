@@ -104,7 +104,17 @@ func PostForm(url string, data url.Values) (resp *Response, err error)
 + PostForm(): отправляет форму в запросе POST
 
 ### <a name="Results"></a> Текущие результаты
+Вид главной страницы.
 
+![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BE%D1%81%D0%BD%D0%BE%D0%B2%D0%BD%D0%BE%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
+
+При нажатии на кнопку.
+
+![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/POST_%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81.png)
+
+При попытке перейти по URL.
+
+![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/URL_%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81.png)
 
 ### <a name="Article"></a> Дополнительные теоретические материалы
 Работа со статическими данными в net/http:
