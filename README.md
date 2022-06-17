@@ -14,7 +14,7 @@
 2. Найти и исследовать библиотеку для разработки Rest API (не навороченную);
 
 ### <a name="Implement"></a> Исследовательская часть
-### <a name="Static"></a> Работа со статическими данными
+#### <a name="Static"></a> Работа со статическими данными
 Для решения данной задачи оптимально выбрать пакет net/http из стандартной библиотеки Golang. Для прямой отправки статических файлов в пакете http определена функция FileServer, которая возващает объект Handler:
 ```golang
 func FileServer(root FileSystem) Handler
@@ -89,7 +89,7 @@ func postform(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "У тебя всё получится,  %s !", name)
 }
 ```
-### <a name="Dynamic"></a> Работа с динамическими данными
+#### <a name="Dynamic"></a> Работа с динамическими данными
 Для отправки запросов в пакете net/http определен ряд функций:
 
 ```golang
@@ -103,7 +103,7 @@ func PostForm(url string, data url.Values) (resp *Response, err error)
 + Post(): отправляет запрос POST
 + PostForm(): отправляет форму в запросе POST
 
-### <a name="Results"></a> Текущие результаты
+#### <a name="Results"></a> Текущие результаты
 Вид главной страницы.
 
 ![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BE%D1%81%D0%BD%D0%BE%D0%B2%D0%BD%D0%BE%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
