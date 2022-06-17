@@ -1,0 +1,28 @@
+{{define "base"}}
+<!doctype html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>{{template "title" .}} - Практика 2022</title>
+    <!-- Ссылка на CSS стили и иконку сайта -->
+    <link rel='stylesheet' href='/static/css/main.css'>
+    <link rel='shortcut icon' href='/static/img/browseicon.ico' type='image/x-icon'>
+    <!-- Подключаем шрифт от Google Fonts -->
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap'>
+</head>
+<body>
+    <header>
+        <h1><a href='/'>Летняя практика 2022</a></h1>
+    </header>
+    <nav>
+        <a href='/'>Домашняя страница Калмыковой М.А.</a>
+    </nav>
+    <main>
+        {{template "main" .}}
+    </main>
+    {{template "footer" .}}
+    <!-- Подключаем JS чтобы сделать сайт более динамичным -->
+    <script src="/static/js/main.js" type="text/javascript"></script>
+</body>
+</html>
+{{end}}

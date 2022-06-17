@@ -1,0 +1,13 @@
+{{template "base" .}}
+
+{{define "title"}}Домашняя страница Калмыковой М.А.{{end}}
+
+{{define "main"}}
+<h2>Мини-результаты текущего дня</h2>
+<p>1. Создан репозиторий с мини-проектом <br>2. Добавлены обработчики запросов (URL и POST) <br>3. Теоретическое изучение средств Rest API</p>
+<form method="POST" action="postform"> <br>
+            <label>Введите ваше имя</label><br>
+            <input type="text" name="username" /><br><br>
+            <input type="submit" value="Отправить" />
+        </form>
+{{end}}
