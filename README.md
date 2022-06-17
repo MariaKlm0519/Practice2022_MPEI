@@ -116,6 +116,15 @@ func PostForm(url string, data url.Values) (resp *Response, err error)
 
 ![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/URL_%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81.png)
 
+Удалось:
+1. Создать репозиторий с проектом на гитхаб
+2. Обработчики пары запросов
+3. Теоретические основы Rest API
+
+Неудалось (посмотрю на выходных):
+1. Подключить html-разметку к странице /postform
+2. Общая функция обработки запросов? Больше вариантов запросов?
+
 ### <a name="Article"></a> Дополнительные теоретические материалы
 Работа со статическими данными в net/http:
 1. [Статические файлы](https://metanit.com/go/web/1.3.php)
@@ -124,6 +133,7 @@ func PostForm(url string, data url.Values) (resp *Response, err error)
 Работа с динамическими данными. Rest API:
 1. [Принципы Rest](https://habr.com/ru/post/590679/)
 2. [Разработка Rest-серверов на Golang](https://habr.com/ru/company/ruvds/blog/559816/)
+3. [Обработка запросов в Golang, пример](https://uproger.com/vazhnye-konczepczii-obrabotchikov-veb-serverov-v-golang/)
 
 Другое:
 1. [Про протокол http](https://habr.com/ru/post/215117/)
