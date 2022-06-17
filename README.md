@@ -128,3 +128,4 @@ func PostForm(url string, data url.Values) (resp *Response, err error)
 Другое:
 1. [Про протокол http](https://habr.com/ru/post/215117/)
 2. [Основы HTML](https://html5book.ru/html-html5/)
+3. [Основы CSS](https://html5book.ru/css-css3/)
