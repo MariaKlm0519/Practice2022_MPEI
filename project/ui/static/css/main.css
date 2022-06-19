@@ -3,7 +3,7 @@
     margin: 0;
     padding: 0;
     font-size: 18px;
-    font-family: "Roboto", monospace;
+    font-family: "Ubuntu mono", monospace;
 }
 
 html, body {
@@ -63,7 +63,7 @@ a:hover {
 
 textarea, input:not([type="submit"]) {
     font-size: 18px;
-    font-family: "Roboto", monospace;
+    font-family: "Ubuntu mono", monospace;
 }
 
 header {
