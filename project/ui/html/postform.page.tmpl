@@ -1,0 +1,13 @@
+{{template "base" .}}
+{{define "title"}}Домашняя страница Калмыковой М.А.{{end}}
+
+{{define "main"}}
+<style>
+   .fig {
+    text-align: center; /* Выравнивание по центру */
+   }
+  </style>
+<h2>Самый большой риск – никогда не рисковать. Это самый верный путь к провалу.</h2>
+<p>Хорошего дня, {{.}}!</p>
+<p class="fig"><img src="/static/img/planet1.png" width="200"></p>
+{{end}}

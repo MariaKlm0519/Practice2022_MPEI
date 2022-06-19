@@ -1,10 +1,9 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
-	"fmt"
-	"html/template"
 )
 
 func main() {
@@ -36,10 +35,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 		"./ui/html/footer.partial.tmpl",
 	}
 
-	// Используем функцию template.ParseFiles() для чтения файлов шаблона.
-	// Если возникла ошибка, мы запишем детальное сообщение ошибки и
-	// используя функцию http.Error() мы отправим пользователю
-	// ответ: 500 Internal Server Error (Внутренняя ошибка на сервере)
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		log.Println(err.Error())
@@ -47,9 +42,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Используем метод Execute() для записи содержимого шаблона
-	// в тело HTTP ответа. Последний параметр в Execute() предоставляет
-	// возможность отправки динамических данных в шаблон.
 	err = ts.Execute(w, nil)
 	if err != nil {
 		log.Println(err.Error())
@@ -64,5 +56,23 @@ func postform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := r.FormValue("username")
-  fmt.Fprintf(w, "У тебя всё получится,  %s !", name)
+
+	files := []string{
+		"./ui/html/postform.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	err = ts.Execute(w, name)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
 }
