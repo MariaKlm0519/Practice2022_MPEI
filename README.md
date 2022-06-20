@@ -89,7 +89,25 @@ func postform(w http.ResponseWriter, r *http.Request) {
 ```
 
 #### <a name="Dynamic"></a> Работа с динамическими данными
+Для работы с динамическими данными можно использовать файлы формата json. Для их обработки в Golang представлена стандартная библиотека "encoding/json".
 
+Для кодирования данных JSON используется Marshal функция.
+```golang
+func Marshal(v interface{}) ([]byte, error)
+```
+Для декодирования данных JSON используется Unmarshal функция.
+```golang
+func Unmarshal(data []byte, v interface{}) error
+```
+Пакет json обращается только к экспортированным полям struct типов (те, которые начинаются с заглавной буквы). Поэтому в выводе JSON будут присутствовать только экспортированные поля структуры.
+
+Использование тегов в структуре кодируемой в JSON позволяет получить названия полей в результирующем JSON, отличающиеся от названия полей в структуре. В следующем примере в результирующем JSON поле ID)user будет выглядеть как id:
+```golang
+type Item struct {
+ ID_user      uint   `json:"id"`
+ Title   string `json:"title"`
+}
+```
 
 #### <a name="Results"></a> Текущие результаты
 Вид главной страницы.
@@ -125,9 +143,10 @@ func postform(w http.ResponseWriter, r *http.Request) {
 2. [Обработка статических файлов](https://golangify.com/serving-static-files)
 
 Работа с динамическими данными. Rest API:
-1. [Принципы Rest](https://habr.com/ru/post/590679/)
-2. [Разработка Rest-серверов на Golang](https://habr.com/ru/company/ruvds/blog/559816/)
-3. [Обработка запросов в Golang, пример](https://uproger.com/vazhnye-konczepczii-obrabotchikov-veb-serverov-v-golang/)
+1. [Работа с JSON в Golang](https://golang-blog.blogspot.com/2019/11/json-golang.html)
+2. [Принципы Rest](https://habr.com/ru/post/590679/)
+3. [Разработка Rest-серверов на Golang](https://habr.com/ru/company/ruvds/blog/559816/)
+4. [Обработка запросов в Golang, пример](https://uproger.com/vazhnye-konczepczii-obrabotchikov-veb-serverov-v-golang/)
 
 Другое:
 1. [Про протокол http](https://habr.com/ru/post/215117/)
