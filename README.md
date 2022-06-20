@@ -115,20 +115,32 @@ type Item struct {
 #### <a name="Results"></a> Текущие результаты
 Вид главной страницы.
 
-![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BE%D1%81%D0%BD%D0%BE%D0%B2%D0%BD%D0%BE%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
+![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BE%D1%81%D0%BD%D0%BE%D0%B2%D0%BD%D0%BE%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
 
-При нажатии на кнопку.
+Вид второй страницы.
 
-![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/3a8987337ceedf1ff9e4c240ad0f14e4fb33701b/current_results_pict/POST_%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81.png)
+![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
+
+Вид третьей страницы.
+
+![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D1%82%D1%80%D0%B5%D1%82%D0%B8%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
+
+Вид четвертой страницы.
+
+![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D1%87%D0%B5%D1%82%D0%B2%D0%B5%D1%80%D1%82%D1%8B%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
 
 При попытке перейти по URL.
 
 ![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/URL_%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81.png)
 
 Удалось:
-1. Создать репозиторий с проектом на гитхаб
-2. Обработчики пары запросов
-3. Теоретические основы Rest API
+1. Создать хранилище данных
+2. Усовершенствовать обработчки запросов
+3. Начать процесс разработки простенького Rest API
+
+Не удалось:
+1. Добавить в проект работу с динамическими данными json
+2. Создать базу данных, вместо локального хранилища
 
 Необходимо подобрать легкую библиотеку по REST API. Возможные варианты:
 1. [resty](https://github.com/go-resty/resty)
@@ -136,9 +148,7 @@ type Item struct {
 3. Использование стандартной библиотеки
 
 Планы на день:
-1. Найти библиотеку для REST API
-2. Рассмотреть работу с динамическими данными
-3. Разработать простенький REST API для сервера
+
 
 ### <a name="Article"></a> Дополнительные теоретические материалы
 Работа со статическими данными в net/http:
