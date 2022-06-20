@@ -1,0 +1,12 @@
+{{template "base" .}}
+{{define "title"}}Домашняя страница Калмыковой М.А.{{end}}
+
+{{define "main"}}
+<h2>Для записи умных мыслей (и не только...)</h2>
+
+<form method="POST" action="/quotesform"> <br>
+            <input type="text" placeholder="Название заметки" name="title" />
+            <textarea placeholder="Введите ваше сообщение" name="text"></textarea>
+            <input type="submit" value="Сохранить" />
+        </form>
+{{end}}

@@ -1,0 +1,13 @@
+{{template "base" .}}
+{{define "title"}} Заметка {{end}}
+
+{{define "main"}}
+
+<h2>Хранилище заметок</h2> <br>
+<p><strong>Заметка №{{.ID}}</strong> <br>
+<span>{{.Title}}</span> <br>
+<pre>{{.Text}}</pre><p>
+<form method="GET" action="/quotesform/create"> <br>
+            <input type="submit" value="Вернуться" />
+        </form>
+{{end}}
