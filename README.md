@@ -112,6 +112,12 @@ func postform(w http.ResponseWriter, r *http.Request) {
 Необходимо подобрать легкую библиотеку по REST API. Возможные варианты:
 1. [resty](https://github.com/go-resty/resty)
 2. [iris](https://github.com/kataras/iris)
+3. Использование стандартной библиотеки
+
+Планы на день:
+1. Найти библиотеку для REST API
+2. Рассмотреть работу с динамическими данными
+3. Разработать простенький REST API для сервера
 
 ### <a name="Article"></a> Дополнительные теоретические материалы
 Работа со статическими данными в net/http:
