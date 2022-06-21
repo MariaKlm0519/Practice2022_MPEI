@@ -146,8 +146,8 @@ type Item struct {
 Необходимо подобрать простую библиотеку по REST API. Возможные варианты:
 1. [Gin](https://github.com/gin-gonic/gin)
 2. [resty](https://github.com/go-resty/resty)
-3. Использование стандартной библиотеки
-4. [iris](https://github.com/kataras/iris)
+3. [echo](https://github.com/labstack/echo)
+4. Использование стандартной библиотеки
 
 Примерные планы на день:
 1. Добавить работу с динамическими данными
