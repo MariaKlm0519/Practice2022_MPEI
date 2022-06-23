@@ -36,38 +36,43 @@ func main() {
   log.Fatal(err)
 }
 ```
-В главную функцию добавим обработчик домашней страницы.
+В главную функцию добавим обработчики необходимых страниц.
 
 ```golang
 func main() {
   ...
   mux.HandleFunc("/", home)
+  mux.HandleFunc("/postform", postform)
+  mux.HandleFunc("/test1", test1)
+  mux.HandleFunc("/test2", test2)
+  mux.HandleFunc("/test3", test3)
   ...
 }
-
-func home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
+```
+Для рендеринга статического содержимого создадим отдельную функцию.
+```golang
+func (aps *application) render(w http.ResponseWriter, r *http.Request, name string, td templateData) {
 	files := []string{
-		"./ui/html/home.page.tmpl",
+		name,
 		"./ui/html/base.layout.tmpl",
 		"./ui/html/footer.partial.tmpl",
 	}
-	ts, err := template.ParseFiles(files...)
+
+	rs, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Println(err.Error())
+		aps.infoLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
-	err = ts.Execute(w, nil)
+
+	err = rs.Execute(w, td)
 	if err != nil {
-		log.Println(err.Error())
+		aps.infoLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 	}
 }
 ```
+
 В документе html домашней страницы создадим поле ввода и кнопку, при нажатии на которую пользователь будет переброшен на другую страницу.
 ```html
 <form method="POST" action="postform"> <br>
@@ -103,7 +108,7 @@ func Unmarshal(data []byte, v interface{}) error
 ```
 Пакет json обращается только к экспортированным полям struct типов (те, которые начинаются с заглавной буквы). Поэтому в выводе JSON будут присутствовать только экспортированные поля структуры.
 
-Использование тегов в структуре кодируемой в JSON позволяет получить названия полей в результирующем JSON, отличающиеся от названия полей в структуре. В следующем примере в результирующем JSON поле ID)user будет выглядеть как id:
+Использование тегов в структуре кодируемой в JSON позволяет получить названия полей в результирующем JSON, отличающиеся от названия полей в структуре. В следующем примере в результирующем JSON поле ID_user будет выглядеть как id:
 ```golang
 type Item struct {
  ID_user      uint   `json:"id"`
@@ -144,6 +149,35 @@ function Action1Message() {
 
 <input onclick="Action1Message()" type="submit" value="Action1" />
 <input onclick="Action2Message()" type="submit" value="Action2" /> <br> <br>
+```
+В данном случае, обработка кросс-доменных запросов (в том числе запросов другим портам) требует либо включения на сервере-ответчике специальных хидеров, либо других методов (например, использование прокси-сервера). В исследовательской мини-задаче пойдем по пути наименьшего сопротивления, тогда обработчик запроса примет следующий вид.
+```golang
+func getrecords(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Max-Age", "1000")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	switch r.Method {
+	case http.MethodGet:
+		{
+			newq, err := json.Marshal(Quote{2, m.Title, m.Text + time.Now().Format(" 2006-01-02 15:04:05")})
+			if err != nil {
+				w.WriteHeader(500)
+				return
+			}
+			w.Write(newq)
+			w.WriteHeader(200)
+		}
+	case http.MethodPost:
+		{
+			body, _ := ioutil.ReadAll(r.Body)
+			_ = json.Unmarshal(body, &m)
+			w.WriteHeader(200)
+		}
+	default: ...
+	}
+}
 ```
 
 #### <a name="Rest_api"></a> Разработка простенького REST API
