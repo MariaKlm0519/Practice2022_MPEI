@@ -110,6 +110,42 @@ type Item struct {
  Title   string `json:"title"`
 }
 ```
+Добавим в проект динамики. Свяжем html-страницы с серверной api. Для этого будем использовать кросс-доменные ajax-запросы.
+```js
+function Action1Message() {
+    $.ajax({
+        async: true,
+        type: 'get',
+        url: 'http://127.0.0.1:4001/api/records',
+        crossDomain: true,
+        cache:false,
+        dataType: 'json',
+        success: function (data, textStatus, jqXHR ){
+            var obj = JSON.parse(jqXHR.responseText);
+            document.getElementById("test").innerHTML = obj.title + " " + obj.text;
+        },
+        error: function () {
+            alert('Failed...');
+        }
+    });
+}
+```
+При этом разметка html-страницы.
+```html
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="/static/js/ajax.js" type="text/javascript"></script>
+
+<form name="f1">
+    <label>Title</label>
+    <input id="title" name="title" type="text">
+    <label>Message</label>
+    <textarea placeholder="Введите ваше сообщение" name="text" id="text"></textarea>
+</form>
+
+<input onclick="Action1Message()" type="submit" value="Action1" />
+<input onclick="Action2Message()" type="submit" value="Action2" /> <br> <br>
+```
+
 #### <a name="Rest_api"></a> Разработка простенького REST API
 
 
