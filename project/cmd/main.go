@@ -3,32 +3,31 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 )
 
-type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	data     *QuotesStore
-}
+/*func TakeAddr() (srv *http.Server, Rest *http.Server) {
+	addr := 4000
+	for {
+
+		break
+	}
+	return srv, nil
+}*/
 
 func main() {
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-
-	aps := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		data:     NewStore(),
-	}
-
+	addr1 := ":4000"
+	addr2 := ":4001"
 	srv := &http.Server{
-		Addr:    ":4000",
-		Handler: aps.routes(),
+		Addr:    addr1,
+		Handler: routes(),
+	}
+	Rest := &http.Server{
+		Addr:    addr2,
+		Handler: restroutes(),
 	}
 
-	infoLog.Println("Запуск сервера на http://127.0.0.1:4000")
-	err := srv.ListenAndServe()
-	errorLog.Fatal(err)
+	log.Println("Запуск сервера на http://127.0.0.1" + addr1)
+	go Rest.ListenAndServe()
+	srv.ListenAndServe()
 }

@@ -2,12 +2,13 @@ package main
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 )
 
 type templateData interface{}
 
-func (aps *application) render(w http.ResponseWriter, r *http.Request, name string, td templateData) {
+func render(w http.ResponseWriter, r *http.Request, name string, td templateData) {
 	files := []string{
 		name,
 		"./ui/html/base.layout.tmpl",
@@ -16,14 +17,14 @@ func (aps *application) render(w http.ResponseWriter, r *http.Request, name stri
 
 	rs, err := template.ParseFiles(files...)
 	if err != nil {
-		aps.infoLog.Println(err.Error())
+		log.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 
 	err = rs.Execute(w, td)
 	if err != nil {
-		aps.infoLog.Println(err.Error())
+		log.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 	}
 }
