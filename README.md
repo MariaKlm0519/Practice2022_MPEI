@@ -5,8 +5,10 @@
 2. [Подготовительный этап](#Implement)
  + [Работа со статическими данными](#Static)
  + [Работа с динамическими данными](#Dynamic)
- + [Разработка простенького REST API](#Rest_api)
- + [Текущие результаты](#Results)
+ + [Мини-задача №1](#Task1)
+ + [Мини-задача №2](#Task2)
+ + [Мини-задача №3](#Task3)
+ + [Мини-задача №4](#Task4)
 3. [Ход работы над заданием](#Deal)
 4. [Дополнительные теоретические материалы](#Article)
 
@@ -180,48 +182,124 @@ func getrecords(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-#### <a name="Rest_api"></a> Разработка простенького REST API
+#### <a name="Task1"></a> Мини-задача №1. Вывести список служб
+Используется пакет golang.org/x/sys/windows/svc/mgr. Для использования данных функций требуются особые права, поэтому необходимо либо запускать приложение от имени администратора, либо передать необходимые права заданному пользователю.
+```golang
+func ListServices(get_status uint32) []Service {
+	m, _ := mgr.Connect()
+	names, _ := m.ListServices()
+	var result []Service
+	for i := 0; i < len(names); i++ {
+		serv, err := m.OpenService(names[i])
+		if err != nil {
+			continue
+		}
+		status, err := serv.Query()
+		if err != nil {
+			continue
+		}
+		if uint32(status.State) == get_status {
+			config, err := serv.Config()
+			if err != nil {
+				continue
+			}
+			newserv := Service{names[i], config, uint32(status.State), serv}
+			result = append(result, newserv)
+		}
+	}
+	return result
+}
+```
 
+#### <a name="Task2"></a> Мини-задача №2. Изменить ini-файл
+Будем использовать пакет gopkg.in/ini.v1.
+```golang
+cfg, err := ini.Load(name)
+if err != nil {
+	w.WriteHeader(500)
+	return
+	}
+status := cfg.Section("Options").Key("Enabled").Value()
+var new_status string
+if status == "1" {
+	new_status = "0"
+	} else {
+	new_status = "1"
+	}
+cfg.Section("Options").Key("Enabled").SetValue(new_status)
+err = cfg.SaveTo(name)
+```
 
-#### <a name="Results"></a> Текущие результаты
-Вид главной страницы.
+#### <a name="Task3"></a> Мини-задача №3. Найти log-файлы, модифицированные в заданном временном диапазоне
+Функция возвращает архив с файлами, дата изменения которых находится внутри диапазона, введенного пользователем.
+```golang
+func listDirByWalk(file_path string, zip_path string, t1 time.Time, t2 time.Time) (*os.File, error) {
 
-![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BE%D1%81%D0%BD%D0%BE%D0%B2%D0%BD%D0%BE%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
+	name := time.Now().Format("02012006150405") + ".zip"
+	outFile, err := os.Create(zip_path + "\\" + name)
+	if err != nil {
+		return nil, errors.New("can't create output file")
+	}
+	zipW := zip.NewWriter(outFile)
 
-Вид второй страницы.
+	filepath.Walk(file_path, func(wPath string, info os.FileInfo, err error) error {
+		if wPath == file_path {
+			return nil
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if info.ModTime().After(t1) && info.ModTime().Before(t2) {
+			dat, _ := ioutil.ReadFile(wPath)
+			f, _ := zipW.Create(info.Name())
+			f.Write(dat)
+		}
+		return nil
+	})
+	err = zipW.Close()
+	if err != nil {
+		return nil, errors.New("can't close zip writer")
+	}
+	err = outFile.Close()
+	if err != nil {
+		return nil, errors.New("can't close output file")
+	}
+	return outFile, nil
+}
+```
 
-![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
+#### <a name="Task4"></a> Мини-задача №4. Вывести информацию о системе
 
-Вид третьей страницы.
+Для решения будем использовать библиотеку gopsutil.
 
-![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D1%82%D1%80%D0%B5%D1%82%D0%B8%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
+```golang
+hostStat, _ := host.Info()
+cpuStat, _ := cpu.Info()
+vmStat, _ := mem.VirtualMemory()
+diskStat, _ := disk.Usage("\\")
 
-Вид четвертой страницы.
-
-![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/75f4c14f32e6c7a21feaf36ec264f2e97eb789b9/current_results_pict/%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D1%87%D0%B5%D1%82%D0%B2%D0%B5%D1%80%D1%82%D1%8B%D0%B9%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD.png)
-
-При попытке перейти по URL.
-
-![](https://github.com/MariaKlm0519/Practice2022_MPEI/blob/961700bfbfc113d1c2a9f8be0cbf8aeba0bddf2e/current_results_pict/URL_%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81.png)
+var info SysInfo
+info.Hostname = hostStat.Hostname
+info.Platform = hostStat.Platform
+info.CPU = cpuStat[0].ModelName
+info.RAM = vmStat.Total / 1024 / 1024 // в Мб
+info.Disk = diskStat.Free / 1024 / 1024  // в Мб
+```
 
 Удалось:
-1. Создать хранилище данных
-2. Усовершенствовать обработчики запросов
-3. Начать процесс разработки простенького Rest API
+1. Вывести список служб с зависимостями
+2. Изменить заданный ini-файл
+3. Найти log-файлы в заданном временном диапазоне. Заархивировать
+4. Вывести некоторую информацию о системе
 
 Не удалось:
-1. Добавить в проект работу с динамическими данными json
-2. Создать базу данных, вместо локального хранилища
-
-Необходимо подобрать простую библиотеку по REST API. Возможные варианты:
-1. [Gin](https://github.com/gin-gonic/gin)
-2. [resty](https://github.com/go-resty/resty)
-3. [echo](https://github.com/labstack/echo)
-4. Использование стандартной библиотеки
+1. Передать архив от сервера пользователю
 
 Примерные планы на день:
-1. Добавить работу с динамическими данными
-2. Продолжить работу над REST API
+1. Добавить передачу архива от сервера к пользователю
+2. Добавить возможность выбора порта из нескольких
+3. Преобразовать консольное приложение к службе
+4. Заставить службу в течение своей работы посылать сигнал другой службе
 
 ### <a name="Deal"></a> Ход работы над заданием
 ...
