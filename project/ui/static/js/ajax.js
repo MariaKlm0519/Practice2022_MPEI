@@ -139,16 +139,25 @@ function CreateTable(object) {
     if (table.rows.length === 0) {
         let tr = document.createElement('tr');
         let td1 = document.createElement('td');
-        td1.innerHTML = "Name";
+        td1.innerHTML = "Название";
         tr.appendChild(td1);
 
         let td2 = document.createElement('td');
-        td2.innerHTML = "Dependencies";
+        td2.innerHTML = "Описание";
         tr.appendChild(td2);
 
         let td3 = document.createElement('td');
-        td3.innerHTML = "Status";
+        td3.innerHTML = "Зависимости";
         tr.appendChild(td3);
+
+        let td4 = document.createElement('td');
+        td4.innerHTML = "Путь";
+        tr.appendChild(td4);
+
+        let td5 = document.createElement('td');
+        td5.innerHTML = "Статус";
+        tr.appendChild(td5);
+
         table.appendChild(tr);
     }
 
@@ -159,12 +168,20 @@ function CreateTable(object) {
         tr.appendChild(td1);
 
         let td2 = document.createElement('td');
-        td2.innerHTML = obj.config.Dependencies;
+        td2.innerHTML = obj.config.Description;
         tr.appendChild(td2);
 
         let td3 = document.createElement('td');
-        td3.innerHTML = obj.status;
+        td3.innerHTML = obj.config.Dependencies;
         tr.appendChild(td3);
+
+        let td4 = document.createElement('td');
+        td4.innerHTML = obj.config.BinaryPathName;
+        tr.appendChild(td4);
+
+        let td5 = document.createElement('td');
+        td5.innerHTML = obj.status;
+        tr.appendChild(td5);
         table.appendChild(tr);
     }
 }
