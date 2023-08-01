@@ -1,103 +1,86 @@
 # Practice2022_MPEI
 
 ## Содержание
-1. [Задание](#Task)
-2. [Подготовительный этап](#Implement)
- + [Работа со статическими данными](#Static)
- + [Работа с динамическими данными](#Dynamic)
- + [Мини-задача №1](#Task1)
- + [Мини-задача №2](#Task2)
- + [Мини-задача №3](#Task3)
- + [Мини-задача №4](#Task4)
-3. [Ход работы над заданием](#Deal)
-4. [Дополнительные теоретические материалы](#Article)
+1. [Постановка задачи](#Task)
+2. [Описание объекта задания](#Chapter2)
+3. [Описание метода решения задачи](#Chapter3)
+4. [Экспериментальная часть](#Chapter4)
+   + [Работа со статическими данными](#Chapter4.1)
+   + [Работа со динамическими данными](#Chapter4.2)
+   + [Вывод служб](#Chapter4.3)
+   + [Изменение статуса ini-файла](#Chapter4.4)
+   + [Поиск log-файлов. Архивирование](#Chapter4.5)
+   + [Информация о системе](#Chapter4.1)
+5. [Выводы](#End)
+6. [Список литературы](#Articles)
 
-### <a name="Task"></a> Задание
-Разработать небольшую службу для удаленного администрирования. Подзадачи: 
-1. Найти и исследовать библиотеку раздачи статических данных; 
-2. Найти и исследовать библиотеку для разработки Rest API (не навороченную);
+**Результаты выполнения индивидуального задания** 
 
-### <a name="Implement"></a> Исследовательская часть
-#### <a name="Static"></a> Работа со статическими данными
+<a name="Task"></a>**1. Постановка задачи**
+
+Разработать  небольшую  службу  для  удаленного  администрирования  со следующими функциями: 
+- Вывод  списка  служб  и  их  параметров  с  выбранным  статусом выполнения. 
+- Изменение статуса выбранного ini-файла. 
+- Поиск  log-файлов,  модифицированных  в  заданный  промежуток времени и возврат архива с файлами клиенту. 
+- Вывод информации о системе.
+
+<a name="Chapter2"></a>**2. Описание объекта задания** 
+
+Стандартный  пакет  net/http  предоставляет  возможности  реализации клиент-серверной архитектуры и обработки REST-запросов и является наиболее оптимальным  для  решения  простых  задач.  REST-запросы  позволяют эффективно  обмениваться  данными  через  веб-приложение;  все  необходимые данные передаются в качестве параметров запроса. Ajax-запросы организуют кроссдоменное взаимодействие между клиентом и сервером. 
+
+<a name="Chapter3"></a>**3. Описание метода решения задачи** 
+
+Создаётся  веб-приложение  с  помощью  стандартного  пакета  net/http. Раздача динамических данных производится с помощью данных в формате json, с  обработкой  через  пакет  encoding/json.  Раздача  статических  данных производится на одном выбранном порту, работа с динамическими данными производится на другом.  
+
+Работа  со  службами  реализуется  с  помощью  пакета  mgr.  Работа  с  ini- файлами  осуществляется  через  пакет  gopkg.in/ini.v1.  Поиск  log-файлов производится с помощью функций библиотеки path/filepath, а их архивирование и отправка – с помощью archive/zip. Вывод информации о системе реализуется через библиотеку gopsutil. 
+
+На клиентской стороне используются шаблоны страниц html и таблицы стилей css. Для реализации кроссдоменных запросов на javascript используются ajax-запросы. 
+
+<a name="Chapter4"></a>**4. Экспериментальная часть** 
+<a name="Chapter4.1"></a>*1) Работа со статическими данными*
+
 Для решения данной задачи оптимально выбрать пакет net/http из стандартной библиотеки Golang. Для прямой отправки статических файлов в пакете http определена функция FileServer, которая возващает объект Handler:
 ```golang
 func FileServer(root FileSystem) Handler
 ```
 Для нашего приложения создадим папку static, куда поместим все статические файлы, с которыми будем работать. Затем, все запросы, начинающиеся со /static/ будем обрабатывать с помощью FileServer.
-    
-```golang
-func main() {
-  mux := http.NewServeMux()
 
-  fileServer := http.FileServer(http.Dir("./ui/static/"))
-  mux.Handle("/static", http.NotFoundHandler())
-  mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-  
-  log.Println("Запуск сервера на http://127.0.0.1:4000")
-  err := http.ListenAndServe(":4000", mux)
-  log.Fatal(err)
+```golang
+func routes() *http.ServeMux {
+   mux := http.NewServeMux()
+   fileServer := http.FileServer(http.Dir("./ui/static/"))
+   mux.Handle("/static", http.NotFoundHandler())
+   mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+   return mux
 }
 ```
-В главную функцию добавим обработчики необходимых страниц.
+Для рендеринга статического содержимого создадим отдельную функцию. 
 
 ```golang
-func main() {
-  ...
-  mux.HandleFunc("/", home)
-  mux.HandleFunc("/postform", postform)
-  mux.HandleFunc("/test1", test1)
-  mux.HandleFunc("/test2", test2)
-  mux.HandleFunc("/test3", test3)
-  ...
-}
-```
-Для рендеринга статического содержимого создадим отдельную функцию.
-```golang
-func (aps *application) render(w http.ResponseWriter, r *http.Request, name string, td templateData) {
-	files := []string{
-		name,
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
+func render(w http.ResponseWriter, r *http.Request, name string, td templateData) {
+   files := []string{
+      name,
+      "./ui/html/base.layout.tmpl",
+      "./ui/html/footer.partial.tmpl",
+   }
 
-	rs, err := template.ParseFiles(files...)
-	if err != nil {
-		aps.infoLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
-		return
-	}
+   rs, err := template.ParseFiles(files...)
+   if err != nil {
+      log.Println(err.Error())
+      http.Error(w, "Internal Server Error", 500)
+      return
+   }
 
-	err = rs.Execute(w, td)
-	if err != nil {
-		aps.infoLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
-	}
+   err = rs.Execute(w, td)
+   if err != nil {
+      log.Println(err.Error())
+      http.Error(w, "Internal Server Error", 500)
+   }
 }
 ```
 
-В документе html домашней страницы создадим поле ввода и кнопку, при нажатии на которую пользователь будет переброшен на другую страницу.
-```html
-<form method="POST" action="postform"> <br>
-            <label>Введите ваше имя</label><br>
-            <input type="text" name="username" /><br><br>
-            <input type="submit" value="Отправить" />
-        </form>
-```
-В другой html-странице будем выводить переданный текст.
-```golang
-func postform(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Error! Locked.", 423)
-		return
-	}
-	name := r.FormValue("username")
-	...
-	err = ts.Execute(w, name)
-	...
-}
-```
+<a name="Chapter4.2"></a>*2) Работа с динамическими данными*
 
-#### <a name="Dynamic"></a> Работа с динамическими данными
 Для работы с динамическими данными можно использовать файлы формата json. Для их обработки в Golang представлена стандартная библиотека "encoding/json".
 
 Для кодирования данных JSON используется Marshal функция.
@@ -118,12 +101,13 @@ type Item struct {
 }
 ```
 Добавим в проект динамики. Свяжем html-страницы с серверной api. Для этого будем использовать кросс-доменные ajax-запросы.
-```js
+
+```javascript
 function Action1Message() {
     $.ajax({
         async: true,
         type: 'get',
-        url: 'http://127.0.0.1:4001/api/records',
+        url: host + "/api/records",
         crossDomain: true,
         cache:false,
         dataType: 'json',
@@ -137,185 +121,375 @@ function Action1Message() {
     });
 }
 ```
-При этом разметка html-страницы.
-```html
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="/static/js/ajax.js" type="text/javascript"></script>
 
-<form name="f1">
-    <label>Title</label>
-    <input id="title" name="title" type="text">
-    <label>Message</label>
-    <textarea placeholder="Введите ваше сообщение" name="text" id="text"></textarea>
-</form>
+В общем случае, система безопасности браузера предотвращает запросы веб-страницы к другому домену, отличному от того, который обслуживает веб- страницу. Поэтому  обработка  кроссдоменных  запросов  (в  числе  которых запросы  к  другим  портам)  требует  или  включения  на  сервере-ответчике специальных  заголовков  ответа,  или  применения  других  методов  (например, использования  прокси-сервера).  Т.к.  приложение  используется  на  локальном хосте, ограничимся первым вариантом и установим необходимые заголовки: 
 
-<input onclick="Action1Message()" type="submit" value="Action1" />
-<input onclick="Action2Message()" type="submit" value="Action2" /> <br> <br>
-```
-В данном случае, обработка кросс-доменных запросов (в том числе запросов другим портам) требует либо включения на сервере-ответчике специальных хидеров, либо других методов (например, использование прокси-сервера). В исследовательской мини-задаче пойдем по пути наименьшего сопротивления, тогда обработчик запроса примет следующий вид.
 ```golang
-func getrecords(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Max-Age", "1000")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	switch r.Method {
-	case http.MethodGet:
-		{
-			newq, err := json.Marshal(Quote{2, m.Title, m.Text + time.Now().Format(" 2006-01-02 15:04:05")})
-			if err != nil {
-				w.WriteHeader(500)
-				return
-			}
-			w.Write(newq)
-			w.WriteHeader(200)
-		}
-	case http.MethodPost:
-		{
-			body, _ := ioutil.ReadAll(r.Body)
-			_ = json.Unmarshal(body, &m)
-			w.WriteHeader(200)
-		}
-	default: ...
-	}
+w.Header().Set("Access-Control-Allow-Origin", "*")
+w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, 
+OPTIONS")
+w.Header().Set("Access-Control-Max-Age", "1000")
+w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, XRequested-With")
+```
+
+<a name="Chapter4.3"></a>*3) Вывод служб*
+
+Для  начала,  создадим  тип,  который  будет  предоставлять  набор необходимой информации о службе. 
+
+```golang
+type Service struct {
+  Name string `json:"name"`
+  Config mgr.Config `json:"config"`
+  Status uint32 `json:"status"`
+  srv *mgr.Service `json:"service"`
 }
 ```
 
-#### <a name="Task1"></a> Мини-задача №1. Вывести список служб
-Используется пакет golang.org/x/sys/windows/svc/mgr. Для использования данных функций требуются особые права, поэтому необходимо либо запускать приложение от имени администратора, либо передать необходимые права заданному пользователю.
+Для  поиска  служб  будем  использовать  пакет golang.org/x/sys/windows/svc/mgr.  Для  этого  установим  соединение  с диспетчером управления службами. Затем из списка служб, представленных на устройстве,  выберем  нужные,  с  заданным  статусом  и  запросим  у  них необходимые  данные.  Следует  заметить,  что  не  все  службы  могут  быть опрошены, их мы пропускаем. 
+
 ```golang
-func ListServices(get_status uint32) []Service {
-	m, _ := mgr.Connect()
-	names, _ := m.ListServices()
-	var result []Service
-	for i := 0; i < len(names); i++ {
-		serv, err := m.OpenService(names[i])
-		if err != nil {
-			continue
-		}
-		status, err := serv.Query()
-		if err != nil {
-			continue
-		}
-		if uint32(status.State) == get_status {
-			config, err := serv.Config()
-			if err != nil {
-				continue
-			}
-			newserv := Service{names[i], config, uint32(status.State), serv}
-			result = append(result, newserv)
-		}
-	}
-	return result
+func ListServices(get_status uint32) ([]Service, error) {
+   m, err := mgr.Connect()
+   defer m.Disconnect()
+   if err != nil {
+      return nil, errors.New("can't connect to service control manager")
+   }
+   names, err := m.ListServices()
+   if err != nil {
+      return nil, errors.New("can't get service list")
+   }
+   var result []Service
+   for i := 0; i < len(names); i++ {
+      serv, err := m.OpenService(names[i])
+      if err != nil {
+         continue
+      }
+      status, err := serv.Query()
+      if err != nil {
+         continue
+      }
+      if uint32(status.State) == get_status {
+         config, err := serv.Config()
+         if err != nil {
+            continue
+         }
+         newserv := Service{names[i], config, uint32(status.State), serv}
+         result = append(result, newserv)
+      }
+   }
+   return result, nil
 }
 ```
 
-#### <a name="Task2"></a> Мини-задача №2. Изменить ini-файл
-Будем использовать пакет gopkg.in/ini.v1.
+Тогда обработчик запроса примет вид: 
 ```golang
-cfg, err := ini.Load(name)
-if err != nil {
-	w.WriteHeader(500)
-	return
-	}
-status := cfg.Section("Options").Key("Enabled").Value()
-var new_status string
-if status == "1" {
-	new_status = "0"
-	} else {
-	new_status = "1"
-	}
-cfg.Section("Options").Key("Enabled").SetValue(new_status)
-err = cfg.SaveTo(name)
+func getlist(w http.ResponseWriter, r *http.Request) {
+   switch r.Method {
+   case http.MethodPost:
+      {
+         body, _ := ioutil.ReadAll(r.Body)
+         var s struct {
+            Stat string `json:"status"`
+         }
+         err := json.Unmarshal(body, &s)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         get_status, err := strconv.Atoi(s.Stat)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         data, err := ListServices(uint32(get_status))
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         newq, err := json.Marshal(data)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         w.Header().Set("Access-Control-Allow-Origin", "*")
+         w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+         w.Header().Set("Access-Control-Max-Age", "1000")
+         w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+         w.Header().Set("Content-Type", "text/html; charset=utf-8")
+         w.Write(newq)
+         w.WriteHeader(200)
+      }
+   default:
+      {
+         http.Error(w, "Error! Locked.", 423)
+         w.WriteHeader(423)
+         return
+      }
+   }
+}
 ```
 
-#### <a name="Task3"></a> Мини-задача №3. Найти log-файлы, модифицированные в заданном временном диапазоне
-Функция возвращает архив с файлами, дата изменения которых находится внутри диапазона, введенного пользователем.
+<a name="Chapter4.4"></a>*4) Изменение статуса ini-файла* 
+
+Ini-файлы  –  текстовые  файлы  особой  структуры,  содержащие конфигурационные параметры некоторых компонентов ОС Windows. 
+
+INI файл может содержать: 
+
+- пустые строки; 
+- комментарии — от символа «;» (точка с запятой), стоящего в начале строки, до конца строки; 
+- заголовки  разделов —  строки,  состоящие  из  названия  раздела, заключённого в квадратные скобки «[ ]»; 
+- значения параметров — строки вида «ключ=значение». 
+
+Пример содержимого ini-файла: 
+
+[Options]
+Enabled   = 1
+Brandover = 0
+Language  = 1033
+SkipUAC   = 1
+
+[Settings]
+Display   = 1
+Root      = /
+
+По договоренности, в рамках задачи за статус ini-файла отвечает параметр Enabled  секции  Options.  Функция  обработки  файла  загружает  файл  по переданному имени. Затем извлекает текущий статус файла, заменяет его на противоположный и сохраняет ini-файл. 
+
+```golang
+func ChangeIni(name string) error {
+   cfg, err := ini.Load(name)
+   if err != nil {
+      return errors.New("can't load ini-file")
+   }
+   status := cfg.Section("Options").Key("Enabled").Value()
+   var new_status string
+   if status == "1" {
+      new_status = "0"
+   } else {
+      new_status = "1"
+   }
+   cfg.Section("Options").Key("Enabled").SetValue(new_status)
+   err = cfg.SaveTo(name)
+   if err != nil {
+      return errors.New("can't save ini-file")
+   }
+   return nil
+}
+```
+
+Тогда обработчик примет вид: 
+
+```golang
+func setini(w http.ResponseWriter, r *http.Request) {
+   switch r.Method {
+   case http.MethodPost:
+      {
+         body, err := ioutil.ReadAll(r.Body)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         var n struct {
+            Name string `json:"name"`
+         }
+         err = json.Unmarshal(body, &n)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         err = ChangeIni(n.Name)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         w.Header().Set("Access-Control-Allow-Origin", "*")
+         w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+         w.Header().Set("Access-Control-Max-Age", "1000")
+         w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+         w.Header().Set("Content-Type", "text/html; charset=utf-8")
+         w.WriteHeader(200)
+      }
+   default:
+      {
+         http.Error(w, "Error! Locked.", 423)
+         w.WriteHeader(423)
+         return
+      }
+   }
+}
+```
+
+<a name="Chapter4.5"></a>*5) Поиск log-файлов. Архивирование.*
+
+Сначала создадим архив, в который будем копировать подходящие log- файлы. В качестве имени архива будем использовать текущие дату и время. 
+
+Поиск файлов организуем рекурсивно, с обходом всех файлов и папок внутри заданной директории. Подходящие по времени файлы будем добавлять в архив. 
+
 ```golang
 func listDirByWalk(file_path string, zip_path string, t1 time.Time, t2 time.Time) (*os.File, error) {
 
-	name := time.Now().Format("02012006150405") + ".zip"
-	outFile, err := os.Create(zip_path + "\\" + name)
-	if err != nil {
-		return nil, errors.New("can't create output file")
-	}
-	zipW := zip.NewWriter(outFile)
+   name := time.Now().Format("02012006150405") + ".zip"
+   outFile, err := os.Create(zip_path + "\\" + name)
+   if err != nil {
+      return nil, errors.New("can't create output file")
+   }
+   zipW := zip.NewWriter(outFile)
 
-	filepath.Walk(file_path, func(wPath string, info os.FileInfo, err error) error {
-		if wPath == file_path {
-			return nil
-		}
-		if info.IsDir() {
-			return nil
-		}
-		if info.ModTime().After(t1) && info.ModTime().Before(t2) {
-			dat, _ := ioutil.ReadFile(wPath)
-			f, _ := zipW.Create(info.Name())
-			f.Write(dat)
-		}
-		return nil
-	})
-	err = zipW.Close()
-	if err != nil {
-		return nil, errors.New("can't close zip writer")
-	}
-	err = outFile.Close()
-	if err != nil {
-		return nil, errors.New("can't close output file")
-	}
-	return outFile, nil
+   filepath.Walk(file_path, func(wPath string, info os.FileInfo, err error) error {
+      if wPath == file_path {
+         return nil
+      }
+      if info.IsDir() {
+         return nil
+      }
+      if info.ModTime().After(t1) && info.ModTime().Before(t2) {
+         dat, _ := ioutil.ReadFile(wPath)
+         f, _ := zipW.Create(info.Name())
+         f.Write(dat)
+      }
+      return nil
+   })
+   err = zipW.Close()
+   if err != nil {
+      return nil, errors.New("can't close zip writer")
+   }
+   err = outFile.Close()
+   if err != nil {
+      return nil, errors.New("can't close output file")
+   }
+   return outFile, nil
 }
 ```
 
-#### <a name="Task4"></a> Мини-задача №4. Вывести информацию о системе
-
-Для решения будем использовать библиотеку gopsutil.
+Тогда обработчик примет вид: 
 
 ```golang
-hostStat, _ := host.Info()
-cpuStat, _ := cpu.Info()
-vmStat, _ := mem.VirtualMemory()
-diskStat, _ := disk.Usage("\\")
-
-var info SysInfo
-info.Hostname = hostStat.Hostname
-info.Platform = hostStat.Platform
-info.CPU = cpuStat[0].ModelName
-info.RAM = vmStat.Total / 1024 / 1024 // в Мб
-info.Disk = diskStat.Free / 1024 / 1024  // в Мб
+func searchLog(w http.ResponseWriter, r *http.Request) {
+   switch r.Method {
+   case http.MethodPost:
+      {
+         body, _ := ioutil.ReadAll(r.Body)
+         var dat struct {
+            Date_start string `json:"date_start"`
+            Time_start string `json:"time_start"`
+            Date_end   string `json:"date_end"`
+            Time_end   string `json:"time_end"`
+         }
+         _ = json.Unmarshal(body, &dat)
+         time_before, _ := time.ParseInLocation("2006-01-02 15:04", dat.Date_start+" "+dat.Time_start, time.Local)
+         time_after, _ := time.ParseInLocation("2006-01-02 15:04", dat.Date_end+" "+dat.Time_end, time.Local)
+         outfile, err := listDirByWalk("\\Документы\\Project_goland\\logs", "\\Документы\\Project_goland\\archive", time_before, time_after)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         fileBytes, _ := ioutil.ReadFile(outfile.Name())
+         w.Write(fileBytes)
+         w.Header().Set("Access-Control-Allow-Origin", "*")
+         w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+         w.Header().Set("Access-Control-Max-Age", "1000")
+         w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+         w.Header().Set("Content-Type", "application/zip")
+         w.WriteHeader(200)
+      }
+   default:
+      {
+         http.Error(w, "Error! Locked.", 423)
+         w.WriteHeader(423)
+         return
+      }
+   }
+}
 ```
 
-Удалось:
-1. Вывести список служб с зависимостями
-2. Изменить заданный ini-файл
-3. Найти log-файлы в заданном временном диапазоне. Заархивировать
-4. Вывести некоторую информацию о системе
+<a name="Chapter4.6"></a>*6) Информация о системе.* 
 
-Не удалось:
-1. Передать архив от сервера пользователю
+Выведем некоторую информацию о системе. Для начала, создадим тип, который будет предоставлять набор необходимой информации о системе. 
 
-Примерные планы на день:
-1. Добавить передачу архива от сервера к пользователю
-2. Добавить возможность выбора порта из нескольких
-3. Преобразовать консольное приложение к службе
-4. Заставить службу в течение своей работы посылать сигнал другой службе
+```golang
+type SysInfo struct {
+   Hostname string `json:"hostname"`
+   Platform string `json:"platform"`
+   CPU      string `json:"cpu"`
+   RAM      uint64 `json:"ram"`
+   Disk     uint64 `json:"disk"`
+}
+```
 
-### <a name="Deal"></a> Ход работы над заданием
-...
+Затем используем библиотеку gopsutil для поиска необходимых данных. 
+```golang
+func GetSystemInfo() (SysInfo, error) {
+   var info SysInfo
+   hostStat, err := host.Info()
+   if err != nil {
+      return info, errors.New("can't get system host info")
+   }
+   cpuStat, err := cpu.Info()
+   if err != nil {
+      return info, errors.New("can't get system cpu info")
+   }
+   vmStat, err := mem.VirtualMemory()
+   if err != nil {
+      return info, errors.New("can't get system memory info")
+   }
+   diskStat, err := disk.Usage("\\")
+   if err != nil {
+      return info, errors.New("can't get system disk info")
+   }
 
-### <a name="Article"></a> Дополнительные теоретические материалы
-Работа со статическими данными в net/http:
-1. [Статические файлы](https://metanit.com/go/web/1.3.php)
-2. [Обработка статических файлов](https://golangify.com/serving-static-files)
+   info.Hostname = hostStat.Hostname
+   info.Platform = hostStat.Platform
+   info.CPU = cpuStat[0].ModelName
+   info.RAM = vmStat.Total / 1024 / 1024
+   info.Disk = diskStat.Free / 1024 / 1024
+   return info, nil
+}
+```
 
-Работа с динамическими данными. Rest API:
-1. [Работа с JSON в Golang](https://golang-blog.blogspot.com/2019/11/json-golang.html)
-2. [Принципы Rest](https://habr.com/ru/post/590679/)
-3. [Разработка Rest-серверов на Golang](https://habr.com/ru/company/ruvds/blog/559816/)
-4. [Обработка запросов в Golang, пример](https://uproger.com/vazhnye-konczepczii-obrabotchikov-veb-serverov-v-golang/)
+Тогда обработчик запросов примет вид: 
 
-Другое:
-1. [Про протокол http](https://habr.com/ru/post/215117/)
-2. [Основы HTML](https://html5book.ru/html-html5/)
-3. [Основы CSS](https://html5book.ru/css-css3/)
+```golang
+func systemInfo(w http.ResponseWriter, r *http.Request) {
+   switch r.Method {
+   case http.MethodGet:
+      {
+         info, err := GetSystemInfo()
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         data, err := json.Marshal(info)
+         if err != nil {
+            w.WriteHeader(500)
+            return
+         }
+         w.Write(data)
+         w.Header().Set("Access-Control-Allow-Origin", "*")
+         w.Header().Set("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+         w.Header().Set("Access-Control-Max-Age", "1000")
+         w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+         w.WriteHeader(200)
+      }
+   default:
+      {
+         http.Error(w, "Error! Locked.", 423)
+         w.WriteHeader(423)
+         return
+      }
+   }
+}
+```
+
+<a name="End"></a>**5. Выводы** 
+
+Разработано  веб-приложение  в  соответствии  с  поставленной  задачей. Обработка запросов осуществляется на сервере на отдельном порте. Обработка статических  данных  и  обмен  данными  с  пользователем  –  на  другом  порте. Обеспечено кроссдоменное взаимодействие между клиентом и сервером. Для лучшего  визуального  восприятия  на  клиентской  стороне  использованы  html- шаблоны страниц и таблицы стилей  css. Для динамичности добавлен код на javascript. Приложение успешно протестировано. 
+
+<a name="Articles"></a>**Список литературы** 
+
+1. Обработка статических данных // Golangify URL: [https://golangify.com/serving-static-files ](https://golangify.com/serving-static-files)
+1. Хабр: [сайт] URL:[ https://habr.com/ru/company/ruvds/blog/559816/ ](https://habr.com/ru/company/ruvds/blog/559816/)- Перевод статьи:[ Разработка REST-серверов на Go. Часть 1: стандартная библиотека ](https://habr.com/ru/company/ruvds/blog/559816/)
+1. jQuery [сайт] URL:[ https://api.jquery.com/jquery.ajax/ ](https://api.jquery.com/jquery.ajax/)- jQuery API ajax Documentation 
+1. Блог о языке программирования Go [сайт] URL:[ https://golang- blog.blogspot.com/2019/11/json-golang.html ](https://golang-blog.blogspot.com/2019/11/json-golang.html)- Работа с json в Golang 
+1. HTML5BOOK [сайт] URL:[ https://html5book.ru/ ](https://html5book.ru/)- Основы HTML, основы CSS 
+1. Максим Жашкевич Язык Go для начинающих. - 1-е изд. - 2020. - 109 с. 
+
+
